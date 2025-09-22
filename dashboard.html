@@ -2,77 +2,407 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Payment System</title>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <script src="fire2.js"></script> <!-- your firebase config -->
+  <script src="fire2.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    .user-info {
-      background: #f1f1f1;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 20px;
+    :root {
+      --primary: #4361ee;
+      --secondary: #3f37c9;
+      --success: #4cc9f0;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --gray: #6c757d;
+      --danger: #e63946;
+      --warning: #fca311;
+      --info: #48cae4;
+      --border-radius: 12px;
+      --box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      --transition: all 0.3s ease;
     }
-    .buttons {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
-      margin-bottom: 20px;
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-    button {
-      padding: 15px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      background: #007bff;
-      color: white;
-      cursor: pointer;
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fb;
+      color: var(--dark);
+      line-height: 1.6;
+      padding: 0;
     }
-    button:hover { background: #0056b3; }
-    .card {
-      border: 1px solid #ccc;
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
       padding: 20px;
-      border-radius: 10px;
-      max-width: 500px;
+    }
+    
+    /* Header */
+    header {
+      background: linear-gradient(120deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 20px;
+      border-radius: 0 0 var(--border-radius) var(--border-radius);
+      margin-bottom: 30px;
+      box-shadow: var(--box-shadow);
+    }
+    
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+    }
+    
+    .logo i {
+      margin-right: 10px;
+    }
+    
+    /* User info */
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .user-avatar {
+      width: 45px;
+      height: 45px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    
+    .user-details {
+      text-align: right;
+    }
+    
+    .user-name {
+      font-weight: 600;
+      font-size: 16px;
+    }
+    
+    .user-level {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    
+    /* Main content */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+    
+    .card {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 24px;
+      box-shadow: var(--box-shadow);
+      transition: var(--transition);
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 20px;
     }
-    .title { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+    
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--dark);
+    }
+    
+    .card-icon {
+      width: 50px;
+      height: 50px;
+      background: rgba(67, 97, 238, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      font-size: 20px;
+    }
+    
+    .stat {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 5px;
+    }
+    
+    .stat-label {
+      color: var(--gray);
+      font-size: 14px;
+    }
+    
+    /* Buttons */
+    .action-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 16px 20px;
+      border: none;
+      border-radius: var(--border-radius);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      background: white;
+      color: var(--primary);
+      box-shadow: var(--box-shadow);
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    }
+    
+    .btn i {
+      font-size: 18px;
+    }
+    
+    /* Notification */
     .notification {
-      background: #fff3cd;
-      color: #856404;
-      border: 1px solid #ffeeba;
-      padding: 10px;
-      border-radius: 6px;
-      margin-bottom: 20px;
+      padding: 16px;
+      border-radius: var(--border-radius);
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      background: #fff9db;
+      color: #e67700;
+      border-left: 4px solid #ffd43b;
+      box-shadow: var(--box-shadow);
+    }
+    
+    .notification-icon {
+      font-size: 24px;
+    }
+    
+    .notification-content {
+      flex: 1;
+    }
+    
+    .notification.hidden {
       display: none;
+    }
+    
+    /* Shift info */
+    .shift-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    
+    .info-item {
+      padding: 15px;
+      background: rgba(67, 97, 238, 0.05);
+      border-radius: var(--border-radius);
+    }
+    
+    .info-label {
+      font-size: 14px;
+      color: var(--gray);
+      margin-bottom: 5px;
+    }
+    
+    .info-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--dark);
+    }
+    
+    /* Footer */
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      padding: 20px;
+      color: var(--gray);
+      font-size: 14px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+      }
+      
+      .user-info {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .user-details {
+        text-align: center;
+      }
+      
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .action-buttons {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Welcome to Dashboard</h1>
-  <div class="user-info">
-    <p><strong>Name:</strong> <span id="sidebarName"></span></p>
-    <p><strong>Level:</strong> <span id="sidebarLevel"></span></p>
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <i class="fas fa-money-check-alt"></i>
+          <span>Payment System</span>
+        </div>
+        <div class="user-info">
+          <div class="user-avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="user-details">
+            <div class="user-name" id="sidebarName">User Name</div>
+            <div class="user-level" id="sidebarLevel">Level</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="notification hidden" id="pendingNotice">
+      <div class="notification-icon">
+        <i class="fas fa-exclamation-circle"></i>
+      </div>
+      <div class="notification-content" id="notificationText"></div>
+    </div>
+
+    <div class="action-buttons">
+      <button class="btn btn-primary" onclick="location.href='newpayment.html'">
+        <i class="fas fa-plus-circle"></i>
+        New Payment
+      </button>
+      <button class="btn" onclick="location.href='DReport.html'">
+        <i class="fas fa-chart-bar"></i>
+        Report
+      </button>
+      <button class="btn" onclick="location.href='updatePayments.html'">
+        <i class="fas fa-edit"></i>
+        Update Payments
+      </button>
+      <button class="btn" onclick="location.href='edit_payments.html'">
+        <i class="fas fa-ban"></i>
+        Void
+      </button>
+      <button class="btn" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i>
+        Logout
+      </button>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Current Shift</div>
+          <div class="card-icon">
+            <i class="fas fa-business-time"></i>
+          </div>
+        </div>
+        <div class="stat" id="shiftNo">Loading...</div>
+        <div class="stat-label">Shift Number</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Total Adults</div>
+          <div class="card-icon">
+            <i class="fas fa-user-friends"></i>
+          </div>
+        </div>
+        <div class="stat" id="totalAdults">Loading...</div>
+        <div class="stat-label">This Shift</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Total Kids</div>
+          <div class="card-icon">
+            <i class="fas fa-child"></i>
+          </div>
+        </div>
+        <div class="stat" id="totalKids">Loading...</div>
+        <div class="stat-label">This Shift</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Shift Details</div>
+        <div class="card-icon">
+          <i class="fas fa-info-circle"></i>
+        </div>
+      </div>
+      <div class="shift-info">
+        <div class="info-item">
+          <div class="info-label">Current Date</div>
+          <div class="info-value" id="currentDate">Loading...</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Shift Status</div>
+          <div class="info-value" id="shiftStatus">Loading...</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Shift Name</div>
+          <div class="info-value" id="shiftName">Loading...</div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="buttons">
-    <button onclick="location.href='newpayment.html'">New Payment</button>
-    <button onclick="location.href='DReport.html'">Report</button>
-    <button onclick="location.href='updatePayments.html'">Update Payments</button>
-    <button onclick="location.href='edit_payments.html'">Void</button>
-    <button onclick="logout()">Logout</button>
-  </div>
-
-  <div id="pendingNotice" class="notification"></div>
-
-  <div class="card">
-    <div class="title">Current Shift Payments</div>
-    <p>Current Date: <span id="currentDate">Loading...</span></p>
-    <p>Current Shift No: <span id="shiftNo">Loading...</span></p>
-    <p>Total Adults: <span id="totalAdults">Loading...</span></p>
-    <p>Total Kids: <span id="totalKids">Loading...</span></p>
-  </div>
+  <footer>
+    <div class="container">
+      <p>© 2023 Payment System | Secure Payment Processing</p>
+    </div>
+  </footer>
 
   <script>
     // Load logged in user
@@ -98,9 +428,12 @@
     document.getElementById("currentDate").textContent = currentDate;
 
     const shiftNoSpan = document.getElementById("shiftNo");
+    const shiftNameSpan = document.getElementById("shiftName");
+    const shiftStatusSpan = document.getElementById("shiftStatus");
     const adultsSpan = document.getElementById("totalAdults");
     const kidsSpan = document.getElementById("totalKids");
     const pendingNotice = document.getElementById("pendingNotice");
+    const notificationText = document.getElementById("notificationText");
 
     // Fetch current shift
     db.collection("shifts")
@@ -108,10 +441,12 @@
       .limit(1)
       .onSnapshot(snapshot => {
         if (snapshot.empty) {
-          shiftNoSpan.textContent = "No shift open";
+          shiftNoSpan.textContent = "None";
+          shiftNameSpan.textContent = "No open shift";
+          shiftStatusSpan.textContent = "Closed";
           adultsSpan.textContent = "0";
           kidsSpan.textContent = "0";
-          pendingNotice.style.display = "none";
+          pendingNotice.classList.add("hidden");
           return;
         }
 
@@ -120,6 +455,8 @@
         const shiftName = shiftNo === 1 ? "Morning" : "Evening";
 
         shiftNoSpan.textContent = shiftNo;
+        shiftNameSpan.textContent = shiftName;
+        shiftStatusSpan.textContent = "Open";
 
         // Fetch payments by date + shift
         db.collection("payments")
@@ -148,22 +485,24 @@
             kidsSpan.textContent = totalKids;
 
             if (pendingCount > 0) {
-              pendingNotice.style.display = "block";
-              pendingNotice.textContent = `⚠️ ${pendingCount} Pending Update(s)`;
+              pendingNotice.classList.remove("hidden");
+              notificationText.textContent = `You have ${pendingCount} pending payment update(s) that require approval code and batch number.`;
             } else {
-              pendingNotice.style.display = "none";
+              pendingNotice.classList.add("hidden");
             }
           }, err => {
             console.error(err);
             adultsSpan.textContent = "Error";
             kidsSpan.textContent = "Error";
-            pendingNotice.style.display = "none";
+            pendingNotice.classList.add("hidden");
           });
 
       }, err => {
         console.error(err);
-        shiftNoSpan.textContent = "Error fetching shift";
-        pendingNotice.style.display = "none";
+        shiftNoSpan.textContent = "Error";
+        shiftNameSpan.textContent = "Error fetching shift";
+        shiftStatusSpan.textContent = "Error";
+        pendingNotice.classList.add("hidden");
       });
   </script>
 </body>
