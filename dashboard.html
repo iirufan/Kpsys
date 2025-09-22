@@ -226,6 +226,13 @@
       color: #e67700;
       border-left: 4px solid #ffd43b;
       box-shadow: var(--box-shadow);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .notification:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
     }
     
     .notification-icon {
@@ -239,31 +246,6 @@
     
     .notification.hidden {
       display: none;
-    }
-    
-    /* Shift info */
-    .shift-info {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-    }
-    
-    .info-item-small {
-      padding: 12px;
-      background: rgba(67, 97, 238, 0.05);
-      border-radius: var(--border-radius);
-    }
-    
-    .info-label {
-      font-size: 12px;
-      color: var(--gray);
-      margin-bottom: 5px;
-    }
-    
-    .info-value {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--dark);
     }
     
     /* Footer */
@@ -343,11 +325,14 @@
   </header>
 
   <div class="container">
-    <div class="notification hidden" id="pendingNotice">
+    <div class="notification hidden" id="pendingNotice" onclick="location.href='updatePayments.html'">
       <div class="notification-icon">
         <i class="fas fa-exclamation-circle"></i>
       </div>
       <div class="notification-content" id="notificationText"></div>
+      <div class="notification-arrow">
+        <i class="fas fa-chevron-right"></i>
+      </div>
     </div>
 
     <div class="action-buttons">
@@ -415,29 +400,6 @@
         <div class="stat-label">This Shift</div>
       </div>
     </div>
-
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Shift Details</div>
-        <div class="card-icon">
-          <i class="fas fa-info-circle"></i>
-        </div>
-      </div>
-      <div class="shift-info">
-        <div class="info-item-small">
-          <div class="info-label">Current Date</div>
-          <div class="info-value" id="currentDateDetail">Loading...</div>
-        </div>
-        <div class="info-item-small">
-          <div class="info-label">Shift Status</div>
-          <div class="info-value" id="shiftStatus">Loading...</div>
-        </div>
-        <div class="info-item-small">
-          <div class="info-label">Shift Name</div>
-          <div class="info-value" id="shiftNameDetail">Loading...</div>
-        </div>
-      </div>
-    </div>
   </div>
 
   <footer>
@@ -468,12 +430,9 @@
     const dd = String(today.getDate()).padStart(2, '0');
     const currentDate = `${yyyy}-${mm}-${dd}`;
     document.getElementById("currentDate").textContent = currentDate;
-    document.getElementById("currentDateDetail").textContent = currentDate;
 
     const shiftNoSpan = document.getElementById("shiftNo");
     const shiftNameSpan = document.getElementById("shiftName");
-    const shiftNameDetailSpan = document.getElementById("shiftNameDetail");
-    const shiftStatusSpan = document.getElementById("shiftStatus");
     const adultsSpan = document.getElementById("totalAdults");
     const kidsSpan = document.getElementById("totalKids");
     const pendingNotice = document.getElementById("pendingNotice");
@@ -487,8 +446,6 @@
         if (snapshot.empty) {
           shiftNoSpan.textContent = "None";
           shiftNameSpan.textContent = "No open shift";
-          shiftNameDetailSpan.textContent = "No open shift";
-          shiftStatusSpan.textContent = "Closed";
           adultsSpan.textContent = "0";
           kidsSpan.textContent = "0";
           pendingNotice.classList.add("hidden");
@@ -501,8 +458,6 @@
 
         shiftNoSpan.textContent = shiftNo;
         shiftNameSpan.textContent = shiftName;
-        shiftNameDetailSpan.textContent = shiftName;
-        shiftStatusSpan.textContent = "Open";
 
         // Fetch payments by date + shift
         db.collection("payments")
@@ -532,7 +487,7 @@
 
             if (pendingCount > 0) {
               pendingNotice.classList.remove("hidden");
-              notificationText.textContent = `You have ${pendingCount} pending payment update(s) that require approval code and batch number.`;
+              notificationText.textContent = `You have ${pendingCount} pending payment update(s) that require approval code and batch number. Click to update.`;
             } else {
               pendingNotice.classList.add("hidden");
             }
@@ -547,8 +502,6 @@
         console.error(err);
         shiftNoSpan.textContent = "Error";
         shiftNameSpan.textContent = "Error fetching shift";
-        shiftNameDetailSpan.textContent = "Error fetching shift";
-        shiftStatusSpan.textContent = "Error";
         pendingNotice.classList.add("hidden");
       });
   </script>
