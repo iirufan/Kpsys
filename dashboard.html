@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="fire2.js"></script> <!-- your firebase config -->
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .user-info {
+      background: #f1f1f1;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 15px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover { background: #0056b3; }
+    .card {
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 500px;
+    }
+    .title { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Welcome to Dashboard</h1>
+  <div class="user-info">
+    <p><strong>Name:</strong> <span id="sidebarName"></span></p>
+    <p><strong>Level:</strong> <span id="sidebarLevel"></span></p>
+  </div>
+
+  <div class="buttons">
+    <button onclick="location.href='newpayment.html'">New Payment</button>
+    <button onclick="location.href='DReport.html'">Report</button>
+    <button onclick="location.href='updatePayments.html'">Update Payments</button>
+    <button onclick="location.href='edit_payments.html'">Void</button>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <div class="card">
+    <div class="title">Current Shift Payments</div>
+    <p>Current Date: <span id="currentDate">Loading...</span></p>
+    <p>Current Shift No: <span id="shiftNo">Loading...</span></p>
+    <p>Total Adults: <span id="totalAdults">Loading...</span></p>
+    <p>Total Kids: <span id="totalKids">Loading...</span></p>
+  </div>
+
+  <script>
+    // Load logged in user
+    const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+    if (!loggedInUser) {
+      window.location.href = "login.html";
+    } else {
+      document.getElementById("sidebarName").textContent = loggedInUser.name;
+      document.getElementById("sidebarLevel").textContent = loggedInUser.Level;
+    }
+
+    function logout() {
+      localStorage.removeItem("loggedInUser");
+      window.location.href = "login.html";
+    }
+
+    // Date
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const currentDate = `${yyyy}-${mm}-${dd}`;
+    document.getElementById("currentDate").textContent = currentDate;
+
+    const shiftNoSpan = document.getElementById("shiftNo");
+    const adultsSpan = document.getElementById("totalAdults");
+    const kidsSpan = document.getElementById("totalKids");
+
+    // Fetch current shift
+    db.collection("shifts")
+      .where("status", "==", "open")
+      .limit(1)
+      .onSnapshot(snapshot => {
+        if (snapshot.empty) {
+          shiftNoSpan.textContent = "No shift open";
+          adultsSpan.textContent = "0";
+          kidsSpan.textContent = "0";
+          return;
+        }
+
+        const shiftData = snapshot.docs[0].data();
+        const shiftNo = shiftData.shiftNo;
+        const shiftName = shiftNo === 1 ? "Morning" : "Evening";
+
+        shiftNoSpan.textContent = shiftNo;
+
+        // Fetch payments by date + shift
+        db.collection("payments")
+          .where("date", "==", currentDate)
+          .where("shift", "==", shiftName)
+          .onSnapshot(paySnapshot => {
+            let totalAdults = 0;
+            let totalKids = 0;
+            paySnapshot.forEach(doc => {
+              const payment = doc.data();
+              if (!payment.voided) {
+                totalAdults += Number(payment.adults || 0);
+                totalKids += Number(payment.kids || 0);
+              }
+            });
+            adultsSpan.textContent = totalAdults;
+            kidsSpan.textContent = totalKids;
+          }, err => {
+            console.error(err);
+            adultsSpan.textContent = "Error";
+            kidsSpan.textContent = "Error";
+          });
+
+      }, err => {
+        console.error(err);
+        shiftNoSpan.textContent = "Error fetching shift";
+      });
+  </script>
+</body>
+</html>
