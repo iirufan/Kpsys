@@ -35,8 +35,18 @@
       padding: 20px;
       border-radius: 10px;
       max-width: 500px;
+      margin-bottom: 20px;
     }
     .title { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+    .notification {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -53,6 +63,8 @@
     <button onclick="location.href='edit_payments.html'">Void</button>
     <button onclick="logout()">Logout</button>
   </div>
+
+  <div id="pendingNotice" class="notification"></div>
 
   <div class="card">
     <div class="title">Current Shift Payments</div>
@@ -88,6 +100,7 @@
     const shiftNoSpan = document.getElementById("shiftNo");
     const adultsSpan = document.getElementById("totalAdults");
     const kidsSpan = document.getElementById("totalKids");
+    const pendingNotice = document.getElementById("pendingNotice");
 
     // Fetch current shift
     db.collection("shifts")
@@ -98,6 +111,7 @@
           shiftNoSpan.textContent = "No shift open";
           adultsSpan.textContent = "0";
           kidsSpan.textContent = "0";
+          pendingNotice.style.display = "none";
           return;
         }
 
@@ -114,24 +128,42 @@
           .onSnapshot(paySnapshot => {
             let totalAdults = 0;
             let totalKids = 0;
+            let pendingCount = 0;
+
             paySnapshot.forEach(doc => {
               const payment = doc.data();
               if (!payment.voided) {
                 totalAdults += Number(payment.adults || 0);
                 totalKids += Number(payment.kids || 0);
+
+                // Pending update check
+                if (payment.paymentType !== "Cash" &&
+                   (!payment.approvalCode || !payment.batchNo)) {
+                  pendingCount++;
+                }
               }
             });
+
             adultsSpan.textContent = totalAdults;
             kidsSpan.textContent = totalKids;
+
+            if (pendingCount > 0) {
+              pendingNotice.style.display = "block";
+              pendingNotice.textContent = `⚠️ ${pendingCount} Pending Update(s)`;
+            } else {
+              pendingNotice.style.display = "none";
+            }
           }, err => {
             console.error(err);
             adultsSpan.textContent = "Error";
             kidsSpan.textContent = "Error";
+            pendingNotice.style.display = "none";
           });
 
       }, err => {
         console.error(err);
         shiftNoSpan.textContent = "Error fetching shift";
+        pendingNotice.style.display = "none";
       });
   </script>
 </body>
